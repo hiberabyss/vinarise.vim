@@ -345,7 +345,16 @@ function! s:parse_current_address() abort
         \ vinarise#get_cur_text(getline('.'), col('.')))
 endfunction
 
-function! s:move_col(is_next) abort
+function! s:do_vcount_move(Handler) abort
+  let l:cnt = v:count == 0 ? 1 : v:count
+
+  while l:cnt > 0
+    let l:cnt = l:cnt - 1
+    call a:Handler()
+  endw
+endfunction
+
+function! s:move_col_once(is_next) abort
   let [type, address] = s:parse_current_address()
   if a:is_next
     if type ==# 'hex'
@@ -375,7 +384,12 @@ function! s:move_col(is_next) abort
     endif
   endif
 endfunction 
-function! s:move_line(is_next) abort
+
+function! s:move_col(is_next) abort
+  call s:do_vcount_move(function('s:move_col_once', [a:is_next]))
+endfunction
+
+function! s:move_line_once(is_next) abort
   if a:is_next
     if line('.') == line('$')
       call vinarise#view#print_lines(2)
@@ -388,6 +402,11 @@ function! s:move_line(is_next) abort
     call cursor(line('.') - 1, 0)
   endif
 endfunction 
+
+function! s:move_line(is_next) abort
+  call s:do_vcount_move(function('s:move_line_once', [a:is_next]))
+endfunction
+
 function! s:move_line_address(is_first) abort
   let address = s:parse_current_address()[1]
   let address = (address / b:vinarise.width) * b:vinarise.width
