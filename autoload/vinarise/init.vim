@@ -40,6 +40,12 @@ let s:use_current_vinarise = 0
 let s:vinarise_plugins = {}
 "}}}
 
+function! s:set_winbar() abort
+  let winbar_text = repeat(' ', getline(1)->match(': ') + 2).
+        \ '00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15'
+  let &l:winbar = winbar_text
+endfunction
+
 function! vinarise#init#start(filename, context) abort "{{{
   if empty(s:vinarise_plugins)
     call s:load_plugins()
@@ -154,9 +160,12 @@ function! vinarise#init#start(filename, context) abort "{{{
 
   if filename != '' && !empty(context.bytes)
     " Write data.
-    call vinarise#write_buffer(filename)
+    call vinarise#handlers#write_buffer(filename)
   endif
-endfunction"}}}
+
+  call s:set_winbar()
+endfunction "}}}
+
 function! vinarise#init#get_plugins() abort "{{{
   return s:vinarise_plugins
 endfunction"}}}
@@ -181,7 +190,7 @@ function! s:load_plugins() abort "{{{
 endfunction"}}}
 function! s:initialize_vinarise_buffer(context, filename, filesize) abort "{{{
   if exists('b:vinarise')
-    call vinarise#release_buffer(bufnr('%'))
+    call vinarise#handlers#release_buffer(bufnr('%'))
   endif
 
   execute s:python g:vinarise_var_prefix.bufnr('%').
